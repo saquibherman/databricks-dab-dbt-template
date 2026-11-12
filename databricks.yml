@@ -1,5 +1,11 @@
 # This is a Declarative Automation Bundle definition for dab_dbt_project.
 # See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
+#
+# No workspace-specific values are stored in this file:
+# - Workspace host: from your Databricks CLI profile (`-p <PROFILE>`) locally, or DATABRICKS_HOST in CI/CD.
+# - Service principal (test/prod): variable `service_principal_id` (its application ID), set in CI/CD from
+#   the AZURE_CLIENT_ID secret; locally with `--var service_principal_id=<app-id>`.
+# - SQL warehouse: looked up by name (`warehouse_name`) at deploy time.
 bundle:
   name: dab_dbt_project
   uuid: 6c804e9f-cd6b-42b8-ab68-e71d4e5edfab
@@ -15,10 +21,21 @@ artifacts:
     path: .
 
 variables:
-  catalog: 
-    default: "citibike_dev" 
+  catalog:
+    description: Unity Catalog catalog for bronze/silver/gold
+    default: citibike_dev
   dev_flag:
     default: true
+  warehouse_name:
+    description: Name of the SQL warehouse dbt runs on (resolved to its ID per workspace)
+    default: Serverless Starter Warehouse
+  warehouse_id:
+    description: SQL warehouse ID used by dbt (looked up from warehouse_name)
+    lookup:
+      warehouse: ${var.warehouse_name}
+  service_principal_id:
+    description: Application (client) ID of the service principal that owns and runs test/prod deployments
+    default: ""
 
 targets:
   dev:
@@ -28,41 +45,34 @@ targets:
     # See also https://docs.databricks.com/dev-tools/bundles/deployment-modes.html.
     mode: development
     default: true
-    workspace:
-      host: https://adb-7405606848286916.16.azuredatabricks.net/
     presets:
       artifacts_dynamic_version: true
+
   test:
     mode: production
     presets:
       name_prefix: "[testing] "
     workspace:
-      host: https://adb-7405618807154509.9.azuredatabricks.net/
-      # We explicitly deploy to /Workspace/Users/saquib.herman@knowit.se to make sure we only have a single copy.
-      root_path: /Workspace/Shared/.bundle/${bundle.name}/${bundle.target}
+      # Private to the deploying identity (the service principal), not writable by all users.
+      root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
     variables:
-      catalog: 
-        default: "citibike_test"
-      dev_flag:
-        default: false
+      catalog: citibike_test
+      dev_flag: false
     permissions:
-      - service_principal_name: 2fe62938-ee9d-493b-950a-ee3c6613099f
+      - service_principal_name: ${var.service_principal_id}
         level: CAN_MANAGE
     run_as:
-      service_principal_name: 2fe62938-ee9d-493b-950a-ee3c6613099f
+      service_principal_name: ${var.service_principal_id}
+
   prod:
     mode: production
     workspace:
-      host: https://adb-7405610196668955.15.azuredatabricks.net/
-      # We explicitly deploy to /Workspace/Users/saquib.herman@knowit.se to make sure we only have a single copy.
-      root_path: /Workspace/Shared/.bundle/${bundle.name}/${bundle.target}
+      root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
     variables:
-      catalog: 
-        default: "citibike_prod"
-      dev_flag:
-        default: false
+      catalog: citibike_prod
+      dev_flag: false
     permissions:
-      - service_principal_name: 64872f30-cc2f-45b3-a709-3eac1c9ebbf9
+      - service_principal_name: ${var.service_principal_id}
         level: CAN_MANAGE
     run_as:
-      service_principal_name: 64872f30-cc2f-45b3-a709-3eac1c9ebbf9
+      service_principal_name: ${var.service_principal_id}

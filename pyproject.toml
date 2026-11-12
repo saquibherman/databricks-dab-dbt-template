@@ -1,7 +1,7 @@
 [project]
 name = "dab_project"
 version = "0.0.1"
-authors = [{ name = "saquib.herman@knowit.se" }]
+authors = [{ name = "Data Platform Team" }]
 requires-python = "==3.12.*"
 dependencies = [
     # Any dependencies for jobs and pipelines in this project can be added here

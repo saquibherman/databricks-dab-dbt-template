@@ -161,8 +161,9 @@ grants on the catalog (read `02_silver`, create/modify in `03_gold`).
 uv venv .venv_dbt --python 3.12
 uv pip install --no-config --python .venv_dbt/bin/python -r requirements-dbt.txt
 
-# credentials for the dev workspace (host without https://, and a token)
-export DBT_HOST=adb-7405606848286916.16.azuredatabricks.net
+# connection for the dev workspace (host without https://, a token, and the SQL warehouse ID)
+export DBT_HOST=<dev-workspace-host>           # e.g. adb-1234567890123456.7.azuredatabricks.net
+export DBT_WAREHOUSE_ID=<sql-warehouse-id>      # SQL Warehouses > your warehouse > Connection details
 export DBT_ACCESS_TOKEN=<personal-access-token>
 
 cd dbt
