@@ -1,8 +1,8 @@
-# This is a Declarative Automation Bundle definition for dab_project.
+# This is a Declarative Automation Bundle definition for dab_dbt_project.
 # See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
 bundle:
-  name: dab_project
-  uuid: 3b068077-66fc-450f-b654-2d4fda688e7e
+  name: dab_dbt_project
+  uuid: 6c804e9f-cd6b-42b8-ab68-e71d4e5edfab
 
 include:
   - resources/*.yml

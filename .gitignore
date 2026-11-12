@@ -19,3 +19,8 @@ scratch/**
 !scratch/README.md
 **/explorations/**
 !**/explorations/README.md
+
+# --- dbt (dbt/) ---
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/

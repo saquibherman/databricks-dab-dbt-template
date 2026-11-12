@@ -77,3 +77,48 @@ jobs:
           name: pytest-results
           path: pytest-results.xml
           retention-days: 14
+
+  dbt_checks:
+    name: dbt checks (parse + format)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: dbt
+    env:
+      # dbt parse renders the profile but never connects, so placeholders are enough (no secrets needed).
+      DBT_HOST: placeholder.azuredatabricks.net
+      DBT_ACCESS_TOKEN: placeholder
+      DBT_SEND_ANONYMOUS_USAGE_STATS: 'false'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up uv + Python 3.12
+        uses: astral-sh/setup-uv@v10.3.3
+        with:
+          version: '0.12.18'
+          python-version: '3.12'
+          activate-environment: true
+          venv-path: .venv_dbt
+          no-project: true
+          cache-dependency-glob: requirements-dbt.txt
+
+      - name: Install dbt
+        working-directory: .
+        run: uv pip install --no-config -r requirements-dbt.txt
+
+      - name: Check SQL formatting (sqlfmt)
+        working-directory: .
+        run: sqlfmt --check --diff dbt
+
+      - name: Install dbt packages
+        run: dbt deps --profiles-dir dbt_profiles
+
+      # Validates Jinja, refs/sources, YAML (tests, unit tests, contracts) for every target.
+      - name: Parse dbt project (dev, test, prod)
+        run: |
+          for target in dev test prod; do
+            dbt parse --profiles-dir dbt_profiles --target "$target"
+          done
