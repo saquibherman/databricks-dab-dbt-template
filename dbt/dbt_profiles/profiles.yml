@@ -1,0 +1,34 @@
+# One target per bundle target. The job runs `dbt ... --target=${bundle.target}`.
+#
+# DBT_HOST and DBT_ACCESS_TOKEN are set automatically by Databricks when dbt runs as a job task
+# (as the job's run_as identity). For local runs, export them yourself (see README "Running dbt locally").
+citibike_dbt:
+  target: dev
+  outputs:
+    dev:
+      type: databricks
+      method: http
+      host: "{{ env_var('DBT_HOST') }}"
+      token: "{{ env_var('DBT_ACCESS_TOKEN') }}"
+      http_path: /sql/1.0/warehouses/882a0acae6aaf982 # Serverless Starter Warehouse (dev)
+      catalog: citibike_dev
+      schema: default
+      threads: 4
+    test:
+      type: databricks
+      method: http
+      host: "{{ env_var('DBT_HOST') }}"
+      token: "{{ env_var('DBT_ACCESS_TOKEN') }}"
+      http_path: /sql/1.0/warehouses/b9422c9b8fa149fa # Serverless Starter Warehouse (test)
+      catalog: citibike_test
+      schema: default
+      threads: 4
+    prod:
+      type: databricks
+      method: http
+      host: "{{ env_var('DBT_HOST') }}"
+      token: "{{ env_var('DBT_ACCESS_TOKEN') }}"
+      http_path: /sql/1.0/warehouses/475ead4c59290148 # Serverless Starter Warehouse (prod)
+      catalog: citibike_prod
+      schema: default
+      threads: 4

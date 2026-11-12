@@ -45,6 +45,10 @@ omit = ["*/__init__.py"]
 show_missing = true
 skip_empty = true
 
+[tool.sqlfmt]
+# sqlfmt formats the dbt SQL/Jinja in dbt/ (run: .venv_dbt/bin/sqlfmt dbt)
+exclude = ["**/.venv*/**", "**/target/**", "**/dbt_packages/**", "**/logs/**"]
+
 [tool.ruff]
 line-length = 120
 
