@@ -1,0 +1,68 @@
+# This is a Declarative Automation Bundle definition for dab_project.
+# See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
+bundle:
+  name: dab_project
+  uuid: 3b068077-66fc-450f-b654-2d4fda688e7e
+
+include:
+  - resources/*.yml
+
+# Build the dab_project wheel (src/dab_project) on every deploy and upload it with the bundle.
+artifacts:
+  dab_project_whl:
+    type: whl
+    build: uv build --wheel
+    path: .
+
+variables:
+  catalog: 
+    default: "citibike_dev" 
+  dev_flag:
+    default: true
+
+targets:
+  dev:
+    # The default target uses 'mode: development' to create a development copy.
+    # - Deployed resources get prefixed with '[dev my_user_name]'
+    # - Any job schedules and triggers are paused by default.
+    # See also https://docs.databricks.com/dev-tools/bundles/deployment-modes.html.
+    mode: development
+    default: true
+    workspace:
+      host: https://adb-7405606848286916.16.azuredatabricks.net/
+    presets:
+      artifacts_dynamic_version: true
+  test:
+    mode: production
+    presets:
+      name_prefix: "[testing] "
+    workspace:
+      host: https://adb-7405618807154509.9.azuredatabricks.net/
+      # We explicitly deploy to /Workspace/Users/saquib.herman@knowit.se to make sure we only have a single copy.
+      root_path: /Workspace/Shared/.bundle/${bundle.name}/${bundle.target}
+    variables:
+      catalog: 
+        default: "citibike_test"
+      dev_flag:
+        default: false
+    permissions:
+      - service_principal_name: 2fe62938-ee9d-493b-950a-ee3c6613099f
+        level: CAN_MANAGE
+    run_as:
+      service_principal_name: 2fe62938-ee9d-493b-950a-ee3c6613099f
+  prod:
+    mode: production
+    workspace:
+      host: https://adb-7405610196668955.15.azuredatabricks.net/
+      # We explicitly deploy to /Workspace/Users/saquib.herman@knowit.se to make sure we only have a single copy.
+      root_path: /Workspace/Shared/.bundle/${bundle.name}/${bundle.target}
+    variables:
+      catalog: 
+        default: "citibike_prod"
+      dev_flag:
+        default: false
+    permissions:
+      - service_principal_name: 64872f30-cc2f-45b3-a709-3eac1c9ebbf9
+        level: CAN_MANAGE
+    run_as:
+      service_principal_name: 64872f30-cc2f-45b3-a709-3eac1c9ebbf9
